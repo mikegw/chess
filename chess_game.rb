@@ -21,12 +21,21 @@ class ChessGame
 
   private
 
+  def display_board
+
+  end
+
   def move_happens
-    @board = @players[@color_to_move].make_move(@board, @color_to_move)
+    move = @players[@color_to_move].get_move
+    @board = @board.apply_move(move)
+    taken_piece = move.piece_taken
+    if taken_piece
+      #stuff in display
+    end
   end
 
   def switch_players
-    @color_to_move = other_color
+    @color_to_move = other_player_color
   end
 
   def over?
@@ -46,7 +55,7 @@ class ChessGame
   def congratulate(color)
   end
 
-  def other_color
+  def other_player_color
     @color_to_move == :white ? :black : :white
   end
 
