@@ -1,3 +1,5 @@
+require_relative 'chess_piece'
+
 class ChessBoard
   def initialize
     @rows = Array.new(8) {Array.new(8)}
@@ -19,10 +21,10 @@ class ChessBoard
   end
 
   def fill_pawns(color, row_idx)
-    8.times { |col_idx| self[[row_idx, col_idx]] = Pawn.new }
+    8.times { |col_idx| self[[row_idx, col_idx]] = Pawn.new(color) }
   end
 
-  def apply_move()
+  def apply_move(move)
     new_board = self.dup
     new_board.apply_move!(move)
 
@@ -35,8 +37,24 @@ class ChessBoard
   end
 
 
+  def to_s
+    render
+  end
+
+  def inspect
+    render
+  end
+
+  def render
+    @rows.map do |row|
+      row.map { |piece| piece || " " }.join
+    end.reverse.join("\n")
+  end
+
+
+
   protected
-  attr_accessor rows
+  attr_accessor :rows
 
   def apply_move!(move)
     raise InvalidMoveError unless move.is_valid_move?
@@ -44,8 +62,14 @@ class ChessBoard
   end
 
   def dup
-    new_board = self.dup
+    new_board = ChessBoard.new
     new_board.rows = self.rows.map(&:dup)
+    new_board
+  end
+
+  def []=(pos, piece)
+    row, col = pos
+    @rows[row][col] = piece
   end
 
 end

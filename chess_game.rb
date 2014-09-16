@@ -28,8 +28,9 @@ class ChessGame
   def move_happens
     move = @players[@color_to_move].get_move
     @board = @board.apply_move(move)
-    taken_piece = move.piece_taken
-    if taken_piece
+    piece_taken = move.piece_to_take
+
+    if piece_taken
       #stuff in display
     end
   end

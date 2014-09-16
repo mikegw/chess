@@ -11,8 +11,12 @@ class ChessPiece
     move_vects.include? move_vect
   end
 
+  def has_take_vect?(take_vect)
+    take_vects.include? take_vect
+  end
+
   def piece_type
-    self.class.name.to_sym
+    self.class.name.downcase.to_sym
   end
 
   def to_s
@@ -21,10 +25,10 @@ class ChessPiece
 
   def move_vects
     (1..max_distance).map do |distance|
-      self.move_dirs.map do |dir_x, dir_y|
-        [distance * dir_x, distance * dir_y]
+      self.move_dirs.map do |dir|
+        [distance * dir[0], distance * dir[1]]
       end
-    end
+    end.flatten(1)
   end
 
   def take_vects
