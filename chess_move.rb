@@ -10,6 +10,7 @@ class ChessMove
 
 
   def is_valid_move?
+    #p [has_valid_piece?, valid_move_vect?, path_clear?, taking_own_piece?]
     has_valid_piece? && valid_move_vect? && path_clear? && !taking_own_piece?
   end
 
@@ -52,6 +53,10 @@ class ChessMove
     end
   end
 
+  def takes_piece?
+    @board[end_pos]
+  end
+
   def taking_own_piece?
     @board[end_pos] && @board[end_pos].color == @color
   end
@@ -66,7 +71,9 @@ class ChessMove
   end
 
   def piece_to_take
-    @board[@end_pos] if @board[end_pos].color == @color
+    if @board[@end_pos] && @board[end_pos].color != @color
+      @board[@end_pos]
+    end
   end
 
   def move_vect

@@ -38,6 +38,19 @@ class ChessBoard
     @rows[row][col]
   end
 
+  def each_piece(&prc)
+    pieces = self.rows.flatten.each {|piece| prc.call(piece)}
+    pieces.select(&:nil?)
+  end
+
+  def each_pos(&prc)
+    8.times do |rank|
+      8.times do |file|
+        prc.call([rank, file])
+      end
+    end
+  end
+
 
   def to_s
     render

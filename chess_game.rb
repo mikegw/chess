@@ -1,4 +1,4 @@
-require_relative 'chess_player'
+require_relative 'new_chess_player'
 require_relative 'chess_move'
 require_relative 'chess_board'
 require_relative 'chess_piece'
@@ -48,11 +48,11 @@ class ChessGame
       move = @players[@color_to_move].get_move(@board, @color_to_move)
       @board = @board.apply_move(move)
 
-      piece_taken = move.piece_to_take
+      piece_taken = move.piece_to_take if move.takes_piece?
       @display_messages = []
       if piece_taken
-        display_messages <<  "#{ChessGame.color_str(@color_to_move)} took a #{piece_taken.class.name}."
-        display_messages <<  "#{ChessGame.color_str(other_player_color)} better get their act together..."
+        @display_messages <<  "#{ChessGame.color_str(@color_to_move)} took a #{piece_taken.class.name}."
+        @display_messages <<  "#{ChessGame.color_str(other_player_color)} better get their act together..."
       end
 
     rescue InvalidMoveError
