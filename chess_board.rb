@@ -1,4 +1,6 @@
-require_relative 'chess_piece'
+def vect_add(vect1, vect2)
+  [vect1[0] + vect2[0], vect1[1] + vect2[1]]
+end
 
 class ChessBoard
   def initialize
@@ -51,14 +53,9 @@ class ChessBoard
     end.reverse.join("\n")
   end
 
-
-
-  protected
-  attr_accessor :rows
-
-  def apply_move!(move)
-    raise InvalidMoveError unless move.is_valid_move?
-    self[move.end_pos], self[move.start_pos] = self[move.start_pos], nil
+  def over?(color_to_move)
+    # TO DO
+    false
   end
 
   def dup
@@ -67,9 +64,17 @@ class ChessBoard
     new_board
   end
 
+
   def []=(pos, piece)
     row, col = pos
     @rows[row][col] = piece
   end
 
+  protected
+  attr_accessor :rows
+
+  def apply_move!(move)
+    raise InvalidMoveError unless move.is_valid_move?
+    self[move.end_pos], self[move.start_pos] = self[move.start_pos], nil
+  end
 end

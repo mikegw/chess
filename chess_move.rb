@@ -1,10 +1,11 @@
 class ChessMove
 
-  attr_reader :start_pos, :end_pos
+  attr_reader :start_pos, :end_pos, :color, :board
   def initialize(board, color, piece_type, start_pos, end_pos)
     @board  = board
     @color, @piece_type = color, piece_type
     @start_pos, @end_pos = start_pos, end_pos
+    #p color, start_pos, end_pos
   end
 
 
