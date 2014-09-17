@@ -173,7 +173,8 @@ class ChessPlayer
     vects.map do |vect|
       args = [test_board, other_color, piece_type, end_pos, vect_add(end_pos, vect)]
       ChessMove.new(*args)
-    end.select do |test_move|
+    end.select do |test_move|require "new_chess_player"
+
       if piece_type == :pawn
         valid_files.include?(test_move.end_pos[0]) &&
           test_board[test_move.end_pos] &&

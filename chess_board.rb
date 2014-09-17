@@ -38,6 +38,10 @@ class ChessBoard
     @rows[row][col]
   end
 
+  def piece_at?(pos)
+    !self[pos].nil?
+  end
+
   def each_piece(&prc)
     pieces = self.rows.flatten.each {|piece| prc.call(piece)}
     pieces.select(&:nil?)
