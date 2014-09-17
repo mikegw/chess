@@ -74,8 +74,8 @@ class ChessGame
 
 
   def end_game
-    display_board
     congratulate(winning_color)
+    display_board
   end
 
   def congratulate(color)
