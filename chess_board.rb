@@ -38,21 +38,37 @@ class ChessBoard
     @rows[row][col]
   end
 
-  def piece_at?(pos)
-    !self[pos].nil?
+  def []=(pos, piece)
+    row, col = pos
+    @rows[row][col] = piece
+  end
+
+  def piece_at(pos)
+    self[pos]
   end
 
   def each_piece(&prc)
-    pieces = self.rows.flatten.each {|piece| prc.call(piece)}
-    pieces.select(&:nil?)
+    every_piece.each(&prc)
+  end
+
+  def each_piece_with_pos(&prc)
+    pos_of_every_piece.map { |pos| [piece_at(pos), pos] }.each(&prc)
+  end
+
+  def every_piece
+    pos_of_every_piece.map { |pos| piece_at(pos) }
   end
 
   def each_pos(&prc)
-    8.times do |rank|
-      8.times do |file|
-        prc.call([rank, file])
-      end
-    end
+    every_pos.each(&prc)
+  end
+
+  def pos_of_every_piece
+    every_pos.select { |pos| piece_at(pos) }
+  end
+
+  def every_pos
+    (0...8).to_a.product((0...8).to_a)
   end
 
 
@@ -65,9 +81,21 @@ class ChessBoard
   end
 
   def render
-    @rows.map do |row|
-      row.map { |piece| piece || " " }.join
-    end.reverse.join("\n")
+    "\n" + file_labels + div_line +
+    @rows.map.with_index { |row, idx| row_str(row, idx) }
+      .reverse.join(div_line) + div_line + file_labels + "\n"
+  end
+
+  def file_labels
+    "    " + ('a'..'h').to_a.map { |file| " #{file} "}.join(" ") + "\n"
+  end
+
+  def row_str(row, idx)
+    " #{idx + 1} | " + row.map { |piece| piece || " " }.join(" | ") + " | #{idx + 1}\n"
+  end
+
+  def div_line
+    "   " + "+---" * 8  + "+\n"
   end
 
   def over?(color_to_move)
@@ -82,10 +110,7 @@ class ChessBoard
   end
 
 
-  def []=(pos, piece)
-    row, col = pos
-    @rows[row][col] = piece
-  end
+
 
   protected
   attr_accessor :rows

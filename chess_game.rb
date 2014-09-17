@@ -1,4 +1,4 @@
-require_relative 'new_chess_player'
+require_relative 'chess_player'
 require_relative 'chess_move'
 require_relative 'chess_board'
 require_relative 'chess_piece'

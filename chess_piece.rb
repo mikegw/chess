@@ -3,8 +3,6 @@ class ChessPiece
 
   def initialize(color)
     @color = color
-    @max_distance = 0
-    @move_dirs = []
   end
 
   def has_move_vect?(move_vect)
