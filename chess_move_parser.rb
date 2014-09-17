@@ -14,8 +14,7 @@ class ChessMoveParser
   end
 
   def parse
-    raise ParsingError unless can_parse?
-    move_candidates[0]
+    can_parse? ? move_to_return : raise ParsingError
   end
 
   private
@@ -42,24 +41,14 @@ class ChessMoveParser
     start_pos_str.length <= 2
   end
 
-  # Move candidates
+  # Move Candidate
+
+  def move_to_return
+    move_candidates[0]
+  end
 
   def move_candidates
     test_moves.select(&:is_valid_move?)
-  end
-
-  def piece_type
-    ROYAL_COURT.include?(@str[0]) ? ROYAL_COURT[@str[0]] : :pawn
-  end
-
-  def pos_info_str
-    @str.length > 2 ? @str[1..-1].delete('x') : @str.delete('x')
-  end
-
-
-  def parse_pos(pos_str)
-     raise ParsingError unless rank_of(pos_str) && file_of(pos_str)
-     [rank_of(pos_str), file_of(pos_str)]
   end
 
   def test_moves
@@ -74,12 +63,10 @@ class ChessMoveParser
     end
   end
 
+  # Valid Start Pos
+
   def valid_start_pos?(test_start_pos)
-    if
-      valid_start_rank(test_start_pos) && valid_start_file(test_start_pos)
-    else
-      raise ParsingError
-    end
+    valid_start_rank(test_start_pos) && valid_start_file(test_start_pos)
   end
 
   def valid_start_rank(test_start_pos)
@@ -88,6 +75,12 @@ class ChessMoveParser
 
   def valid_start_file(test_start_pos)
     test_start_pos[1] == start_pos_file if start_pos_file
+  end
+
+  # Parsing Basic Move Info
+
+  def piece_type
+    ROYAL_COURT.include?(@str[0]) ? ROYAL_COURT[@str[0]] : :pawn
   end
 
   def start_pos
@@ -121,6 +114,10 @@ class ChessMoveParser
 
   def end_pos_str
     pos_info_str[-2..-1]
+  end
+
+  def pos_info_str
+    @str.length > 2 ? @str[1..-1].delete('x') : @str.delete('x')
   end
 end
 
