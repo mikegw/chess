@@ -14,14 +14,13 @@ class ChessGame
     @board = ChessBoard.new
     @players = { :white => ChessPlayer.new, :black => ChessPlayer.new}
     @color_to_move = :white
-    @display_messages = ["Welcome to chess"]
+    @next_move_messages = ["Welcome to chess"]
   end
 
   def play
     begin_game
 
     until over?
-      system('clear')
       display
       move_happens
       switch_players
@@ -32,60 +31,86 @@ class ChessGame
 
   private
 
-  def display
-    display_board
-    puts @display_messages
+
+
+  def begin_game
   end
 
+
+
+  def over?
+    @board.no_valid_moves?(@color_to_move)
+  end
+
+
+
+
+  def display
+    system('clear')
+    display_board
+    puts @next_move_messages
+  end
 
   def display_board
     puts @board
   end
 
   def move_happens
-    puts "It's #{ChessGame.color_str(@color_to_move)}'s turn. Maybe he'll surprise us. But probably not."
+    puts "It's #{ChessGame.color_str(@color_to_move)}'s turn. Maybe you'll surprise us. But probably not."
+
+    move = next_move
+    @board = move.board_after_move
+    promote_pawn(move) if move.promotes_pawn?
+
+    prepare_next_move_messages(move)
+  end
+
+  def next_move
     begin
-      move = @players[@color_to_move].get_move(@board, @color_to_move)
-      @board = @board.apply_move(move)
-
-      piece_taken = move.piece_to_take if move.takes_piece?
-      @display_messages = []
-      if piece_taken
-        @display_messages <<  "#{ChessGame.color_str(@color_to_move)} took a #{piece_taken.class.name}."
-        @display_messages <<  "#{ChessGame.color_str(other_player_color)} better get their act together..."
-      end
-
-    rescue InvalidMoveError
+      next_move = player_to_move.get_move(@board, @color_to_move)
+      raise InvalidMoveError unless next_move.is_valid_move?
+    rescue InvalidMoveError, ParseError
       handle_invalid_move
       retry
     end
+
+    next_move
   end
+
+  def prepare_next_move_messages(move)
+    @next_move_messages = []
+
+    if move.takes_piece?
+      @next_move_messages <<  "#{ChessGame.color_str(@color_to_move)} took a #{move.piece_to_take.class.name}."
+    end
+
+    if @board.in_check?(other_player_color) && !@board.no_valid_moves?(other_player_color)
+      @next_move_messages << "Check."
+    end
+
+    if move.en_passant?
+      @next_move_messages << "En passant."
+    end
+  end
+
+  def player_to_move
+    @players[@color_to_move]
+  end
+
+  def promote_pawn(move)
+    promotion_type = player_to_move.get_promotion_type
+    @board[move.end_pos] = sym_to_class(promotion_type).new(@color_to_move)
+  end
+
+  def handle_invalid_move
+    puts "You can't move there! Do you even know how to play this game?!"
+  end
+
+
+
 
   def switch_players
     @color_to_move = other_player_color
-  end
-
-  def over?
-    @board.over?(@color_to_move)
-  end
-
-  def begin_game
-  end
-
-
-  def end_game
-    congratulate(winning_color)
-    display_board
-  end
-
-  def congratulate(color)
-    if color.nil?
-      display_messages <<  "A stalemate. You're both losers really."
-      display_messages <<  "How boring..."
-    else
-      display_messages <<  "#{ChessGame.color_str(color)} wins. Maybe he does have a brain-cell or two."
-      display_messages <<  "#{ChessGame.color_str(other_player_color)} certainly doesn't..."
-    end
   end
 
   def other_player_color
@@ -93,9 +118,31 @@ class ChessGame
   end
 
 
-  def handle_invalid_move
-    puts "You can't move there! Do you even know how to play this game?!"
+
+
+  def end_game
+    checkmate? ? congratulate_winner : end_in_stalemate
+    display
   end
+
+  def congratulate_winner
+    @next_move_messages <<  "Checkmate."
+    @next_move_messages <<  "Maybe #{ChessGame.color_str(other_player_color)} does have a brain-cell or two."
+    @next_move_messages <<  "#{ChessGame.color_str(@color_to_move)} certainly doesn't..."
+  end
+
+  def checkmate?
+    @board.checkmate?(@color_to_move)
+  end
+
+  def end_in_stalemate
+    @next_move_messages <<  "A stalemate. You're both losers really."
+    @next_move_messages <<  "How boring..."
+  end
+end
+
+def sym_to_class(sym)
+  Kernel.const_get(sym.to_s.split('_').map(&:capitalize).join)
 end
 
 

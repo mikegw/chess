@@ -8,13 +8,16 @@ class ChessMoveParser
     "B" => :bishop,
     "N" => :knight
   }
+  def self.royal_court(sym)
+    ROYAL_COURT[sym]
+  end
 
   def initialize(str, board, color_to_move)
     @str, @board, @color_to_move = str, board, color_to_move
   end
 
   def parse
-    can_parse? ? move_to_return : raise ParsingError
+    can_parse? ? move_to_return : (raise ParseError)
   end
 
   private
@@ -22,23 +25,23 @@ class ChessMoveParser
   # Check for ParsingError
 
   def can_parse?
-    valid_capturing_state? && unambiguous? && appropriate_str_length?
+    valid_str_format? && valid_capturing_state? && unambiguous?
   end
 
-  def unambigous?
+  def unambiguous?
     move_candidates.length == 1
   end
 
   def valid_capturing_state?
-    (capturing == board.piece_at(end_pos))
+    !(capturing? ^ @board.piece_at(end_pos))
   end
 
   def capturing?
     @str.include?('x')
   end
 
-  def appropriate_str_length?
-    start_pos_str.length <= 2
+  def valid_str_format?
+    /^[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8]$/.match(@str)
   end
 
   # Move Candidate
@@ -48,12 +51,13 @@ class ChessMoveParser
   end
 
   def move_candidates
-    test_moves.select(&:is_valid_move?)
+    move_candidates = test_moves.select(&:is_valid_move?)
+    move_candidates
   end
 
   def test_moves
     test_pieces_with_pos.map do |test_piece, test_start_pos|
-      ChessMove.new(@board, @color, piece_type, test_start_pos, end_pos)
+      ChessMove.new(@board, @color_to_move, piece_type, test_start_pos, end_pos)
     end
   end
 
@@ -70,11 +74,11 @@ class ChessMoveParser
   end
 
   def valid_start_rank(test_start_pos)
-    test_start_pos[0] == start_pos_rank if start_pos_rank
+    start_pos_rank.nil? || start_pos_rank == test_start_pos[0]
   end
 
   def valid_start_file(test_start_pos)
-    test_start_pos[1] == start_pos_file if start_pos_file
+    start_pos_file.nil? || start_pos_file == test_start_pos[1]
   end
 
   # Parsing Basic Move Info
@@ -84,7 +88,6 @@ class ChessMoveParser
   end
 
   def start_pos
-    #coordinates possibly nil!
     [start_pos_rank, start_pos_file]
   end
 
@@ -101,7 +104,7 @@ class ChessMoveParser
   end
 
   def end_pos_rank
-    RANKS.index(end_pos_str[1]])
+    RANKS.index(end_pos_str[1])
   end
 
   def end_pos_file
@@ -121,5 +124,5 @@ class ChessMoveParser
   end
 end
 
-class ParsingError < IOError
+class ParseError < IOError
 end

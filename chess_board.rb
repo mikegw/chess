@@ -3,12 +3,15 @@ def vect_add(vect1, vect2)
 end
 
 class ChessBoard
+
+  attr_accessor :en_passant
   def initialize
     @rows = Array.new(8) {Array.new(8)}
     fill_royal_court(:white, 0)
     fill_pawns(:white, 1)
     fill_pawns(:black, 6)
     fill_royal_court(:black, 7)
+    @en_passant = nil
   end
 
   def fill_royal_court(color, row_idx)
@@ -26,13 +29,6 @@ class ChessBoard
     8.times { |col_idx| self[[row_idx, col_idx]] = Pawn.new(color) }
   end
 
-  def apply_move(move)
-    new_board = self.dup
-    new_board.apply_move!(move)
-
-    new_board
-  end
-
   def [](pos)
     row, col = pos
     @rows[row][col]
@@ -44,7 +40,11 @@ class ChessBoard
   end
 
   def piece_at(pos)
-    self[pos]
+    self[pos] if pos.all? { |coord| (0...8).include?(coord) }
+  end
+
+  def piece_at?(pos)
+    !self[pos].nil?
   end
 
   def each_piece(&prc)
@@ -70,7 +70,6 @@ class ChessBoard
   def every_pos
     (0...8).to_a.product((0...8).to_a)
   end
-
 
   def to_s
     render
@@ -98,9 +97,32 @@ class ChessBoard
     "   " + "+---" * 8  + "+\n"
   end
 
-  def over?(color_to_move)
-    # TO DO
-    false
+
+  def checkmate?(color)
+    in_check?(color) && no_valid_moves?(color)
+  end
+
+  def no_valid_moves?(color)
+    each_piece_with_pos.none? do |piece, start_pos|
+      every_pos.any? do |end_pos|
+        ChessMove.new(self, color, piece.piece_type, start_pos, end_pos).is_valid_move?
+      end
+    end
+  end
+
+  def in_check?(color)
+    other_color = ( color == :white ? :black : :white )
+    king_pos = find_king_pos(color)
+    each_piece_with_pos.any? do |piece, pos|
+      ChessMove.new(self, other_color, piece.piece_type, pos, king_pos)
+        .is_valid_threat_for_check?
+    end
+  end
+
+  def find_king_pos(color)
+    pos_of_every_piece.find do |pos|
+      piece_at?(pos) && piece_at(pos).is_a?(King) && piece_at(pos).color == color
+    end
   end
 
   def dup
@@ -109,14 +131,8 @@ class ChessBoard
     new_board
   end
 
-
-
-
   protected
   attr_accessor :rows
 
-  def apply_move!(move)
-    raise InvalidMoveError unless move.is_valid_move?
-    self[move.end_pos], self[move.start_pos] = self[move.start_pos], nil
-  end
+
 end

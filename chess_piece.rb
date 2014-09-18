@@ -1,8 +1,18 @@
 class ChessPiece
+  attr_accessor :moved
   attr_reader :move_dirs, :color, :max_distance
 
   def initialize(color)
     @color = color
+    @moved = false
+  end
+
+  def piece_type
+    self.class.name.downcase.to_sym
+  end
+
+  def moved?
+    @moved
   end
 
   def has_move_vect?(move_vect)
@@ -13,13 +23,6 @@ class ChessPiece
     take_vects.include? take_vect
   end
 
-  def piece_type
-    self.class.name.downcase.to_sym
-  end
-
-  def to_s
-    self.class.chars[self.color]
-  end
 
   def move_vects
     (1..max_distance).map do |distance|
@@ -32,6 +35,18 @@ class ChessPiece
   def take_vects
     self.move_vects
   end
+
+
+  def dup
+    new_piece = self.class.new(@color)
+    new_piece.moved = @moved
+    new_piece
+  end
+
+  def to_s
+    self.class.chars[self.color]
+  end
+
 end
 
 
@@ -123,7 +138,6 @@ class Pawn < SteppingPiece
     @move_dirs = [
       [direction_to_move, 0]
     ]
-    @moved = false
   end
 
   def direction_to_move
