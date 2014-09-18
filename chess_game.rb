@@ -1,7 +1,10 @@
-require_relative 'chess_player'
-require_relative 'chess_move'
-require_relative 'chess_board'
 require_relative 'chess_piece'
+require_relative 'chess_board'
+require_relative 'chess_move'
+
+require_relative 'chess_move_parser'
+require_relative 'chess_player'
+
 
 class ChessGame
   PLAYERS = [:white, :black]
@@ -32,18 +35,17 @@ class ChessGame
   private
 
 
-
   def begin_game
+    @next_move_messages << "It looks like you're going to play chess."
+    @next_move_messages << "Don't think you'll impress me."
   end
 
 
+  #------Before each move------#
 
   def over?
     @board.no_valid_moves?(@color_to_move)
   end
-
-
-
 
   def display
     system('clear')
@@ -54,6 +56,9 @@ class ChessGame
   def display_board
     puts @board
   end
+
+
+  #------What happens each move------#
 
   def move_happens
     puts "It's #{ChessGame.color_str(@color_to_move)}'s turn. Maybe you'll surprise us. But probably not."
@@ -77,6 +82,11 @@ class ChessGame
     next_move
   end
 
+  def promote_pawn(move)
+    promotion_type = player_to_move.get_promotion_type
+    @board[move.end_pos] = sym_to_class(promotion_type).new(@color_to_move)
+  end
+
   def prepare_next_move_messages(move)
     @next_move_messages = []
 
@@ -93,21 +103,12 @@ class ChessGame
     end
   end
 
-  def player_to_move
-    @players[@color_to_move]
-  end
-
-  def promote_pawn(move)
-    promotion_type = player_to_move.get_promotion_type
-    @board[move.end_pos] = sym_to_class(promotion_type).new(@color_to_move)
-  end
-
   def handle_invalid_move
     puts "You can't move there! Do you even know how to play this game?!"
   end
 
 
-
+  #------Switching_players------#
 
   def switch_players
     @color_to_move = other_player_color
@@ -117,8 +118,12 @@ class ChessGame
     @color_to_move == :white ? :black : :white
   end
 
+  def player_to_move
+    @players[@color_to_move]
+  end
 
 
+  #------Endgame behavior------#
 
   def end_game
     checkmate? ? congratulate_winner : end_in_stalemate
@@ -141,10 +146,8 @@ class ChessGame
   end
 end
 
-def sym_to_class(sym)
-  Kernel.const_get(sym.to_s.split('_').map(&:capitalize).join)
-end
 
+#------Run the game! (if running as script)------#
 
 if __FILE__ == $PROGRAM_NAME
   game = ChessGame.new

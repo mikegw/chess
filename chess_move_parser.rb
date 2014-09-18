@@ -1,4 +1,5 @@
 class ChessMoveParser
+
   FILES = ('a'..'h').to_a
   RANKS = (1..8).to_a.map(&:to_s)
   ROYAL_COURT = {
@@ -8,6 +9,7 @@ class ChessMoveParser
     "B" => :bishop,
     "N" => :knight
   }
+
   def self.royal_court(sym)
     ROYAL_COURT[sym]
   end
@@ -20,9 +22,11 @@ class ChessMoveParser
     can_parse? ? move_to_return : (raise ParseError)
   end
 
+
+
   private
 
-  # Check for ParsingError
+  #------Top-level parsing logic------#
 
   def can_parse?
     valid_str_format? && valid_capturing_state? && unambiguous?
@@ -44,7 +48,8 @@ class ChessMoveParser
     /^[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8]$/.match(@str)
   end
 
-  # Move Candidate
+
+  #------Determine possible moves referred to by @str------$
 
   def move_to_return
     move_candidates[0]
@@ -67,7 +72,8 @@ class ChessMoveParser
     end
   end
 
-  # Valid Start Pos
+
+  #------Valid start pos------#
 
   def valid_start_pos?(test_start_pos)
     valid_start_rank(test_start_pos) && valid_start_file(test_start_pos)
@@ -81,18 +87,16 @@ class ChessMoveParser
     start_pos_file.nil? || start_pos_file == test_start_pos[1]
   end
 
-  # Parsing Basic Move Info
+
+  #------Parsing vasic move info------#
 
   def piece_type
     ROYAL_COURT.include?(@str[0]) ? ROYAL_COURT[@str[0]] : :pawn
   end
 
+
   def start_pos
     [start_pos_rank, start_pos_file]
-  end
-
-  def end_pos
-    [end_pos_rank, end_pos_file]
   end
 
   def start_pos_rank
@@ -103,6 +107,11 @@ class ChessMoveParser
     FILES.index(start_pos_str[0])
   end
 
+
+  def end_pos
+    [end_pos_rank, end_pos_file]
+  end
+
   def end_pos_rank
     RANKS.index(end_pos_str[1])
   end
@@ -110,6 +119,9 @@ class ChessMoveParser
   def end_pos_file
     FILES.index(end_pos_str[0])
   end
+
+
+  #------Semantically relevant substrings------#
 
   def start_pos_str
     pos_info_str[0..-3]
@@ -123,6 +135,9 @@ class ChessMoveParser
     @str.length > 2 ? @str[1..-1].delete('x') : @str.delete('x')
   end
 end
+
+
+#------Errors------#
 
 class ParseError < IOError
 end

@@ -7,13 +7,12 @@ class ChessPiece
     @moved = false
   end
 
-  def piece_type
-    self.class.name.downcase.to_sym
-  end
+  #------General validity-tests for all pieces------#
 
-  def moved?
-    @moved
-  end
+  ## A "move_vect" is the integer vector between ending and starting positions of a move in which no piece is captured. A "take_vect" is the corresponding vector for a move that captures a piece.
+
+  ## A "move_dir" is the integer vector in the same direction as a move_vect (or take_vect) whose coordinates have no common factors
+
 
   def has_move_vect?(move_vect)
     move_vects.include? move_vect
@@ -24,6 +23,14 @@ class ChessPiece
   end
 
 
+  ## We calculate a move_vect based on the "distance" travelled along it (i.e. the multiple of the move_dir)
+
+  ## We calculate the valid move_vects of a piece base on its valid move_dirs and the maximum distance it can move, i.e. 1 for a "stepping piece" (Knight or King), 7 for a "sliding piece" (Queen, Rook, or Bishop), and either 1 or 2 for a pawn depending whether or not it has moved.
+
+  ## This does not take into account castling, which involves more than once piece and their relative positions, and thus is handled by the board.
+
+  ## It does, however, still handle en passant captures
+
   def move_vects
     (1..max_distance).map do |distance|
       self.move_dirs.map do |dir|
@@ -32,10 +39,15 @@ class ChessPiece
     end.flatten(1)
   end
 
+
+  ## For all pieces except the pawn, the move_vects and take_vects are the same. For the Pawn, we hard-code the take_vects, making the Pawn's max_distance only relevant in the non-capturing case.
+
   def take_vects
     self.move_vects
   end
 
+
+  #------Basic operations------#
 
   def dup
     new_piece = self.class.new(@color)
@@ -47,8 +59,22 @@ class ChessPiece
     self.class.chars[self.color]
   end
 
+
+  #------Basic piece info------#
+
+  def piece_type
+    self.class.name.downcase.to_sym
+  end
+
+  def moved?
+    @moved
+  end
 end
 
+
+#------Categories of pieces------#
+
+## We call the Knight and King "SteppingPieces", because they can only make a single step along their move_dirs. We also classify Pawns this way, and overwrite this behavior when they have not yet moved.
 
 class SteppingPiece < ChessPiece
   def initialize(color)
@@ -57,12 +83,20 @@ class SteppingPiece < ChessPiece
   end
 end
 
+
+## We call the Queen, Rook, and Bishop "SlidingPieces" because they can slide as large a distance they want along their move_dirs. Because the board is 8-by-8, the largest distance between two pieces along a non-zero move_dir is 7.
+
 class SlidingPiece < ChessPiece
   def initialize(color)
     super
     @max_distance = 7
   end
 end
+
+
+#------Individual pieces------#
+
+#------King (remember that the Board deals with castling)------#
 
 class King < SteppingPiece
   def self.chars
@@ -78,6 +112,9 @@ class King < SteppingPiece
   end
 end
 
+
+#------Queen------#
+
 class Queen < SlidingPiece
   def self.chars
     {white: "♕", black: "♛"}
@@ -92,6 +129,8 @@ class Queen < SlidingPiece
   end
 end
 
+#------Rook------#
+
 class Rook < SlidingPiece
   def self.chars
     {white: "♖", black: "♜"}
@@ -103,6 +142,9 @@ class Rook < SlidingPiece
   end
 end
 
+
+#------Bishop------#
+
 class Bishop < SlidingPiece
   def self.chars
     {white: "♗", black: "♝"}
@@ -113,6 +155,9 @@ class Bishop < SlidingPiece
     @move_dirs = [[1, 1], [-1, 1], [-1, -1], [1, -1]]
   end
 end
+
+
+#------Knight------#
 
 class Knight < SteppingPiece
   def self.chars
@@ -127,6 +172,9 @@ class Knight < SteppingPiece
     ]
   end
 end
+
+
+#------Pawn------#
 
 class Pawn < SteppingPiece
   def self.chars
@@ -155,5 +203,10 @@ class Pawn < SteppingPiece
   def take_vects
     [[direction_to_move, 1], [direction_to_move, -1]]
   end
+end
 
+#------Helper method (accessible everywhere)------#
+
+def sym_to_class(piece_type_sym)
+  Kernel.const_get(piece_type_sym.to_s.split('_').map(&:capitalize).join)
 end

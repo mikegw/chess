@@ -1,11 +1,16 @@
-class ChessMove
+require_relative "chess_board"
 
+class ChessMove
   attr_reader :start_pos, :end_pos, :color, :board
+
   def initialize(board, color, piece_type, start_pos, end_pos)
     @board = board
     @color, @piece_type = color, piece_type
     @start_pos, @end_pos = start_pos, end_pos
   end
+
+
+  #------Top-level logic------#
 
   def board_after_move
     new_board = @board.dup
@@ -33,7 +38,7 @@ class ChessMove
   end
 
 
-  # there is an appropriate piece to move at start_pos
+  #------There is an appropriate piece to move at start_pos------#
 
   def has_valid_piece?
     piece_to_move && right_piece_type? && right_piece_color?
@@ -48,7 +53,7 @@ class ChessMove
   end
 
 
-  # end_pos accessible?
+  #------End_pos accessible?------#
 
   def end_pos_accessible?
     !taking_own_piece? && !moves_into_check? && path_clear?
@@ -69,8 +74,7 @@ class ChessMove
   end
 
 
-
-  # piece can make that move (assuming empty board)
+  #------Piece can make that move (assuming empty board)------#
 
   def valid_move_vect?
     valid_passive_move_vect? || valid_aggressive_move_vect?
@@ -86,7 +90,8 @@ class ChessMove
       (@board.piece_at?(end_pos) || en_passant?)
   end
 
-  # en passant
+
+  #------En passant------#
 
   def en_passant?
     @piece_type == :pawn && @board.en_passant == end_pos
@@ -108,7 +113,8 @@ class ChessMove
     [end_pos[0] == 2 ? 3 : 4, end_pos[1]]
   end
 
-  #castling
+
+  #------Castling------#
 
   def attempting_castle_move?
     @piece_type == :king && move_vect[1].abs == 2
@@ -149,7 +155,13 @@ class ChessMove
     end
   end
 
-  # move info
+
+  #------Basic move info and operations------#
+
+  def partial_slide(step)
+    [start_pos[0] + move_dir[0] * step, start_pos[1] + move_dir[1] * step]
+  end
+
 
   def takes_piece?
     @board[end_pos] || en_passant?
@@ -165,6 +177,7 @@ class ChessMove
     end
   end
 
+
   def promotes_pawn?
     @piece_type == :pawn && @end_pos[0] == promoted_pawn_rank
   end
@@ -176,6 +189,7 @@ class ChessMove
   def promoted_pawn_rank
     @color == :white ? 7 : 0
   end
+
 
   def move_vect
     start_row, start_col = @start_pos
@@ -191,12 +205,8 @@ class ChessMove
   def num_steps
     move_vect[0].gcd move_vect[1]
   end
-
-  def partial_slide(step)
-    [start_pos[0] + move_dir[0] * step, start_pos[1] + move_dir[1] * step]
-  end
 end
+
 
 class InvalidMoveError < StandardError
 end
-
